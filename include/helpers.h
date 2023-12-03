@@ -1,6 +1,6 @@
 typedef union {
-	int   integer;
-	char *string;
+    int   integer;
+    char *string;
 } Result;
 
 typedef void (Solver)(Result*, char*);
