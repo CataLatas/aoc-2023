@@ -9,11 +9,11 @@
 
 #define MSG_BUF_SIZE 256
 
-void check_example_int(Solver *solver, char *input, int expected) {
+void check_example_int(Solver *solver, char **lines, int expected) {
     Result result;
 
     printf("Checking example input...\n");
-    solver(&result, input);
+    solver(&result, lines);
 
     if (result.integer != expected) {
         fprintf(stderr, "Expected %d, but got %d\n", expected, result.integer);
@@ -23,11 +23,11 @@ void check_example_int(Solver *solver, char *input, int expected) {
     printf("Example input passed!\n\n");
 }
 
-void check_example_str(Solver *solver, char *input, char *expected) {
+void check_example_str(Solver *solver, char **lines, char *expected) {
     Result result;
 
     printf("Checking example input...\n");
-    solver(&result, input);
+    solver(&result, lines);
 
     if (strcmp(result.string, expected)) {
         fprintf(stderr, "Expected '%s', but got '%s\n'", expected, result.string);
@@ -50,6 +50,7 @@ char* read_entire_file(char *filename) {
 
     fseek(f, 0, SEEK_END);
     size = ftell(f);
+    assert(size > 0);
     fseek(f, 0, SEEK_SET);
 
     if ((data = malloc(size + 1)) == NULL) {
@@ -66,5 +67,41 @@ char* read_entire_file(char *filename) {
     data[size] = '\0';
 
     return data;
+}
+
+char** read_lines_from_file(char *filename) {
+    char *data;
+    char *buf;
+    int count = 0;
+    int capacity = 256;
+    char **lines = malloc(capacity * sizeof(*lines));
+
+    if (lines == NULL) {
+        perror("Could not allocate memory for input lines");
+        exit(1);
+    }
+
+    data = read_entire_file(filename);
+
+    lines[count++] = data;
+    for (buf = data; *buf; ++buf) {
+        if (*buf == '\n') {
+            *buf = '\0'; // Yep. Modify in place
+
+            if (count >= capacity) {
+                capacity *= 2;
+                lines = realloc(lines, capacity * sizeof(*lines));
+            }
+            lines[count++] = buf + 1;
+        }
+    }
+
+    if (count >= capacity) {
+        ++capacity;
+        lines = realloc(lines, capacity * sizeof(*lines));
+    }
+    lines[count++] = NULL; // Terminate with NULL pointer
+
+    return lines;
 }
 
