@@ -53,10 +53,8 @@ char* read_entire_file(char *filename) {
     assert(size > 0);
     fseek(f, 0, SEEK_SET);
 
-    if ((data = malloc(size + 1)) == NULL) {
-        perror("Could not allocate memory for input data");
-        exit(1);
-    }
+    data = malloc(size + 1);
+    assert(data != NULL && "Could not allocate memory for input data!");
 
     if (fread(data, 1, size, f) != size) {
         snprintf(msg_buf, MSG_BUF_SIZE, "Error reading %s", filename);
@@ -76,10 +74,7 @@ char** read_lines_from_file(char *filename) {
     int capacity = 256;
     char **lines = malloc(capacity * sizeof(*lines));
 
-    if (lines == NULL) {
-        perror("Could not allocate memory for input lines");
-        exit(1);
-    }
+    assert(lines != NULL && "Could not allocate memory for input lines");
 
     data = read_entire_file(filename);
 
