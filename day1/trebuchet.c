@@ -22,7 +22,8 @@ char *EXAMPLE_INPUT_2[] = {
     "xtwone3four",
     "4nineeightseven2",
     "zoneight234",
-    "7pqrstsixteen"
+    "7pqrstsixteen",
+    NULL
 };
 
 #define EXAMPLE_RESULT_2 281
