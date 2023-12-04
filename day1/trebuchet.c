@@ -5,20 +5,25 @@
 
 #include "helpers.h"
 
-#define EXAMPLE_INPUT "1abc2\n" \
-                      "pqr3stu8vwx\n" \
-                      "a1b2c3d4e5f\n" \
-                      "treb7uchet\n"
+char *EXAMPLE_INPUT[] = {
+    "1abc2",
+    "pqr3stu8vwx",
+    "a1b2c3d4e5f",
+    "treb7uchet",
+    NULL
+};
 
 #define EXAMPLE_RESULT 142
 
-#define EXAMPLE_INPUT_2 "two1nine\n" \
-                        "eightwothree\n" \
-                        "abcone2threexyz\n" \
-                        "xtwone3four\n" \
-                        "4nineeightseven2\n" \
-                        "zoneight234\n" \
-                        "7pqrstsixteen\n"
+char *EXAMPLE_INPUT_2[] = {
+    "two1nine",
+    "eightwothree",
+    "abcone2threexyz",
+    "xtwone3four",
+    "4nineeightseven2",
+    "zoneight234",
+    "7pqrstsixteen"
+};
 
 #define EXAMPLE_RESULT_2 281
 
@@ -48,55 +53,61 @@ int get_digit_part2(char *s) {
     return -1;
 }
 
-int calculate_sum(char *input, int(*map_to_digit)(char*)) {
+int calculate_sum(char **lines, int(*map_to_digit)(char*)) {
     int first;
     int last;
-    int sum;
 
-    for (sum = 0; *input; ++input) {
-        for (first = last = -1; *input && *input != '\n'; ++input) {
-            int digit = map_to_digit(input);
+    int sum = 0;
+    for (char *line = *lines; *lines; line = *(++lines)) {
+        if (*line == '\0') break; // Filter out empty line at end of input
+
+        first = -1;
+        last = -1;
+        while (*line) {
+            int digit = map_to_digit(line);
 
             if (digit != -1) {
                 if (first == -1) first = digit;
 
                 last = digit;
             }
+
+            ++line;
         }
 
-        if (first != -1 && last != -1) {
-            sum += first*10 + last;
-        }
+        assert(first != -1 && last != -1);
+        sum += first*10 + last;
     }
 
     return sum;
 }
 
-void part1(Result *result, char *input) {
-    result->integer = calculate_sum(input, get_digit_part1);
+void part1(Result *result, char **lines) {
+    result->integer = calculate_sum(lines, get_digit_part1);
 }
 
-void part2(Result *result, char *input) {
-    result->integer = calculate_sum(input, get_digit_part2);
+void part2(Result *result, char **lines) {
+    result->integer = calculate_sum(lines, get_digit_part2);
 }
 
 int main() {
-    char *input;
+    char **lines;
     Result result;
 
-    input = read_entire_file("input.txt");
+    lines = read_lines_from_file("input.txt");
 
     printf("----- PART 1 -----\n");
     check_example_int(part1, EXAMPLE_INPUT, EXAMPLE_RESULT);
-    part1(&result, input);
+    part1(&result, lines);
     printf("Sum of calibration values: %d\n\n", result.integer);
 
     printf("----- PART 2 -----\n");
     check_example_int(part2, EXAMPLE_INPUT_2, EXAMPLE_RESULT_2);
-    part2(&result, input);
+    part2(&result, lines);
     printf("Sum of calibration values: %d\n", result.integer);
 
-    free(input);
+    free(*lines);
+    free(lines);
 
     return 0;
 }
