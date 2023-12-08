@@ -5,9 +5,6 @@
 
 #include "helpers.h"
 
-// TODO: This is a trash solution
-// Maybe look into actually using the input as a 2D array
-
 char* EXAMPLE_INPUT[] = {
     "467..114..",
     "...*......",
@@ -24,85 +21,49 @@ char* EXAMPLE_INPUT[] = {
 
 #define EXAMPLE_RESULT 4361
 
-int is_symbol(char c) {
-    int ok = c != '\0' && c != '.' && (c < '0' || c > '9');
-    if (ok) printf("FOUND A SYMBOL '%c' (0x%02X)\n", c, c);
+int is_symbol_at(char **lines, int lin, int col, int length) {
+    char c;
 
-    return ok;
-}
+    if (col < 0 || col >= length) return 0;
+    if (lin < 0 || lines[lin] == NULL) return 0;
 
-// Sum of part numbers on specific line
-// "middle" is our current line
-int find_part_numbers(char *top, char *middle, char *bottom) {
-    int sum = 0;
+    // Absolutely hate those empty lines
+    if (lines[lin][0] == '\0') return 0;
 
-    char *str_begin = middle;
-
-    while (*middle) {
-        char *start_ptr = middle;
-
-        int number;
-        int start_index;
-        int end_index;
-        int is_part_number = 0;
-
-        if (*middle >= '0' && *middle <= '9') {
-            number = strtol(middle, &middle, 10);
-
-            start_index = start_ptr - str_begin - 1;
-            end_index = start_index + middle - start_ptr + 2;
-            for (int i = start_index; i < end_index && !is_part_number; ++i) {
-                if (i < 0) continue;
-
-                if (is_symbol(top[i]) || is_symbol(bottom[i])) {
-                    is_part_number = 1;
-                }
-            }
-
-            if (!is_part_number) {
-                is_part_number = (start_ptr >= str_begin && is_symbol(*(start_ptr - 1))) || is_symbol(*middle);
-            }
-
-            if (is_part_number) sum += number;
-        } else {
-            ++middle;
-        }
-    }
-
-    return sum;
+    c = lines[lin][col];
+    return c != '.' && (c < '0' || c > '9');
 }
 
 void part1(Result *result, char **lines) {
-    char *top;
-    char *middle;
-    char *bottom;
-
-    int length = strlen(*lines);
+    int length = strlen(*lines); // All lines have the same lengths
     int sum = 0;
-    char *empty_line = malloc(length + 1);
-    assert(empty_line != NULL && "Error allocating memory for empty line");
 
-    for (int i = 0; i < length; ++i) {
-        empty_line[i] = '.';
-    }
+    for (int lin = 0; lines[lin]; ++lin) {
+        char *end;
+        char *line_str = lines[lin];
+        if (*line_str == '\0') break; // Filter out empty lines at end of input
 
-    top = empty_line;
-    middle = *lines;
-    while (*lines) {
-        if (**lines == '\0') break; // Filter out newline at the end of input
+        printf("\nSCANNING '%s'\n", line_str);
 
-        bottom = *(++lines);
-        // Newline at end of input or NULL (examples don't have the newline)
-        // ...am I doing this right?
-        if (bottom == NULL || *bottom == '\0') bottom = empty_line;
+        for (int col = 0; col < length; ++col) {
+            if (line_str[col] >= '0' && line_str[col] <= '9') {
+                int is_part_number = 0;
+                int number = strtol(line_str+col, &end, 10);
 
-        printf("TOP    '%s'\n", top);
-        printf("MIDDLE '%s'\n", middle);
-        printf("BOTTOM '%s'\n", bottom);
-        sum += find_part_numbers(top, middle, bottom);
+                is_part_number = is_symbol_at(lines, lin, col-1, length) || is_symbol_at(lines, lin, end - line_str, length);
 
-        top = middle;
-        middle = bottom;
+                for (int i = col-1; i <= end - line_str && !is_part_number; ++i) {
+                    is_part_number = is_symbol_at(lines, lin-1, i, length) || is_symbol_at(lines, lin+1, i, length);
+                }
+
+                if (is_part_number) {
+                    printf("%d ", number);
+                    sum += number;
+                }
+
+                col = end - line_str;
+            }
+        }
     }
 
     result->integer = sum;
