@@ -43,8 +43,6 @@ void part1(Result *result, char **lines) {
         char *line_str = lines[lin];
         if (*line_str == '\0') break; // Filter out empty lines at end of input
 
-        printf("\nSCANNING '%s'\n", line_str);
-
         for (int col = 0; col < length; ++col) {
             if (line_str[col] >= '0' && line_str[col] <= '9') {
                 int is_part_number = 0;
@@ -57,7 +55,6 @@ void part1(Result *result, char **lines) {
                 }
 
                 if (is_part_number) {
-                    printf("%d ", number);
                     sum += number;
                 }
 
